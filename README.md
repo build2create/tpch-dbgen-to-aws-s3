@@ -1,5 +1,3 @@
-# Incremental changes on top of the forked repo
-Deleting the chunks upon successful upload - This is especially useful to save up some disk space in case of large scale factors.
 
 # Purpose
 
@@ -37,3 +35,7 @@ git clone https://github.com/matwerber1/tpch-dbgen-to-aws-s3
 cd tpch-dbgen-to-aws-s3
 ./run.sh
 ```
+
+
+# Incremental changes on top of the forked repo
+Deleting the chunks upon successful upload - This is especially useful to save up some disk space in case of large scale factors.
