@@ -1,3 +1,6 @@
+# Incremental changes on top of the forked repo
+Deleting the chunks upon successful upload - This is especially useful to save up some disk space in case of large scale factors.
+
 # Purpose
 
 Provide a script that makes it easy to generate a TPC-H data set and upload the output files to an AWS S3 bucket. 
@@ -5,7 +8,6 @@ Provide a script that makes it easy to generate a TPC-H data set and upload the 
 The generated files are chunked to support the parallel load capabilities provided by Amazon Redshift, AWS Glue, AWS EMR, etc. 
 
 The collection of files generated for each table are placed in their own S3 prefix which is necessary for certain services such as Redshift Spectrum. 
-
 
 # Instructions
 
