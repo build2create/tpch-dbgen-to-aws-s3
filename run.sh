@@ -1,16 +1,16 @@
 #!/bin/bash
 
 # Size, in GBs, of the total dataset to be created
-SIZE=1
+SIZE=
 
 # For each table, how many files should it be split into?
-CHUNKS=80
+CHUNKS=
 
 # The S3 bucket to which the TPC-H files will be sent
-S3_BUCKET=werberm-bigdata
+S3_BUCKET=
 
 # The top-level working directory (should be one dir above tpch-dbgen)
-ROOT_PATH=~/environment
+ROOT_PATH=
 
 # Directory to which you've cloned tpch-dbgen from github
 DBGEN_PATH=$ROOT_PATH/tpch-dbgen
@@ -29,23 +29,25 @@ cd $DBGEN_PATH
 for ((i=1; i<=CHUNKS; i++)); do
     echo ./dbgen -v -s $SIZE -C $CHUNKS -S $i -f
     ./dbgen -v -s $SIZE -C $CHUNKS -S $i -f
+    cd $OUTPUT_DIR
+    for j in `ls *.tbl.$i`; do
+      sed 's/|$//' $j > ${j/tbl/csv};
+      echo $j;
+      table_name="$( cut -d '.' -f 1 <<< "$j" )"
+      mv $table_name.csv.$i $table_name.$i.csv
+      aws s3 cp $table_name.$i.csv s3://$S3_BUCKET/warehouse/tpc-h-${SIZE}/$table_name/
+      #In case the file is small enough to divde in chunks copy the file completely
+      if [ ! -f $table_name.csv];
+      then
+      aws s3 cp $table_name.csv s3://$S3_BUCKET/warehouse/tpc-h-${SIZE}/$table_name/
+      rm -rf $table_name.csv
+      fi
+      echo "Done copying the s3 chunk $table_name.$i.csv"
+      rm -rf $j
+      rm -rf $table_name.$i.csv
+      echo "Completed cleaning up the chunks"
+    done;
+    echo "Completed the iteration # $i"
+    cd $DBGEN_PATH
 done
 
-cd $ROOT_PATH
-
-# loop through and upload each file to S3
-FILES=$OUTPUT_DIR/*
-for f in $FILES
-do
-  
-  # get filename from full file path
-  FILENAME=$(basename -- "$f")
-  
-  # match anything *before* the .tbl or .tbl.X where X is one or more digits
-  REGEX='\w+(?=\.tbl)'
-  TABLE=$(echo $FILENAME | grep -P $REGEX -o)
-
-  # load file to S3
-  aws s3 cp $f s3://$S3_BUCKET/$DIR_NAME/$TABLE/$FILENAME.csv
-
-done
